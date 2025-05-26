@@ -2,7 +2,8 @@
   <div class="app-container">
     <!-- Sidebar + Backdrop -->
     <div :class="['sidebar-wrapper', { open: sidebarOpen }]">
-      <Sidebar :open="sidebarOpen" @selectChat="selectChat" />
+      <Sidebar :open="sidebarOpen" @selectChat="selectChat" @closeSidebar="toggleSidebar" />
+
     </div>
 <!--    <div class="sidebar-backdrop" v-if="sidebarOpen" @click="toggleSidebar"></div>-->
     <div class="daho-wrapper">
@@ -20,7 +21,7 @@
       </header>
 
       <!-- Chat Main -->
-      <main class="chat-area">
+      <main class="chat-area container">
         <div class="chat-message" ref="chatWindow">
           <div
               v-for="(msg, index) in messages"
@@ -85,7 +86,7 @@
 
 <script setup>
 import { ref, nextTick } from 'vue'
-import Sidebar from '@/components/Sidebar.vue'
+import Sidebar from '@/components/sidebar.vue'
 
 const message = ref('')
 const sidebarOpen = ref(false)
@@ -198,7 +199,6 @@ function selectChat(title) {
   align-items: center;
   padding: 12px 20px;
   background-color: white;
-  border-bottom: 1px solid #ddd;
   gap: 12px;
 }
 
@@ -418,4 +418,22 @@ function selectChat(title) {
   100% { content: ''; }
 }
 
+
+@media (max-width: 769px) {
+  .sidebar-wrapper {
+    width: 100%;
+    position: fixed;
+    left: -100%;
+    top: 0;
+
+  }
+
+  .sidebar-wrapper.open {
+    width: 100%;
+    left: 0;
+
+
+  }
+
+}
 </style>

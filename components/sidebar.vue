@@ -23,7 +23,7 @@
 <script setup>
 import { ref, defineEmits } from 'vue'
 
-const emit = defineEmits(['selectChat'])
+const emit = defineEmits(['selectChat', 'closeSidebar']) // добавлен closeSidebar
 const selectedChat = ref(null)
 
 const chatGroups = [
@@ -49,10 +49,19 @@ function createChat() {
   alert('Функция создания нового чата будет реализована позже')
 }
 
+
 function selectChat(chat) {
   selectedChat.value = chat
   emit('selectChat', chat)
+
+  // Закрытие сайдбара при мобильной ширине
+  if (window.innerWidth <= 769) {
+    emit('closeSidebar')
+  }
 }
+
+
+
 </script>
 
 <style scoped>
@@ -129,5 +138,13 @@ function selectChat(chat) {
 .chat-item.active {
   background: #d2e4ff;
   border: 1px solid #90bfff;
+}
+
+@media (max-width: 769px) {
+  .sidebar{
+    border: none;
+    border-radius: 0;
+  }
+
 }
 </style>
