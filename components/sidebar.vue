@@ -54,7 +54,6 @@ function selectChat(chat) {
   selectedChat.value = chat
   emit('selectChat', chat)
 
-  // Закрытие сайдбара при мобильной ширине
   if (window.innerWidth <= 769) {
     emit('closeSidebar')
   }
