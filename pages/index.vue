@@ -274,10 +274,10 @@ function selectChat(title) {
   position: relative;
 }
 .message-bubble-user{
-  border-bottom-right-radius: 0px;
+  border-bottom-right-radius: 0;
 }
 .message-bubble-bot{
-  border-bottom-left-radius: 0px;
+  border-bottom-left-radius: 0;
 }
 .timestamp {
   font-size: 11px;
