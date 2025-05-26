@@ -1,11 +1,11 @@
 <template>
   <div class="app-container">
-    <!-- Sidebar + Backdrop -->
+    <!-- Sidebar -->
     <div :class="['sidebar-wrapper', { open: sidebarOpen }]">
       <Sidebar :open="sidebarOpen" @selectChat="selectChat" @closeSidebar="toggleSidebar" />
-
     </div>
-<!--    <div class="sidebar-backdrop" v-if="sidebarOpen" @click="toggleSidebar"></div>-->
+
+    <!-- Chat Wrapper -->
     <div class="daho-wrapper">
       <header class="chat-header">
         <button class="toggle-sidebar" @click="toggleSidebar">
@@ -20,7 +20,6 @@
         <div class="brand-logo">Daho AI</div>
       </header>
 
-      <!-- Chat Main -->
       <main class="chat-area container">
         <div class="chat-message" ref="chatWindow">
           <div
@@ -30,16 +29,19 @@
           >
             <div class="message-wrapper">
               <img v-if="msg.role === 'assistant'" src="@/assets/bot.jpg" alt="AI" class="avatar" />
-
               <div :class="['message-bubble', msg.role === 'user' ? 'message-bubble-user' : 'message-bubble-bot']">
                 <span class="timestamp">{{ msg.timestamp }}</span>
-                <p class="message-text">{{ msg.text }}</p>
+                <template v-if="msg.file">
+                  <img v-if="isImage(msg.file.name)" :src="msg.file.url" class="file-image" />
+                  <a v-else :href="msg.file.url" target="_blank">📎 {{ msg.file.name }}</a>
+                </template>
+                <p class="message-text" v-if="msg.text">{{ msg.text }}</p>
               </div>
             </div>
           </div>
 
           <div v-if="isTyping" class="assistant-message">
-            <div class="message-wrapper ">
+            <div class="message-wrapper">
               <img src="@/assets/bot.jpg" alt="AI" class="avatar" />
               <div class="message-bubble">
                 <span class="timestamp">{{ new Date().toLocaleTimeString() }}</span>
@@ -49,6 +51,7 @@
           </div>
         </div>
 
+        <!-- Input + File Preview -->
         <div class="chat-input-extended">
           <div class="input-wrapper">
             <input
@@ -57,13 +60,17 @@
                 placeholder="Спроси что угодно"
                 @keydown.enter="sendMessage"
             />
-            <button class="send-button" @click="sendMessage">
-              <span>↑</span>
-            </button>
+            <img v-if="canSend" src="@/assets/send.svg" alt="send" @click="sendMessage" />
           </div>
+
+          <div v-if="attachedFile" class="file-preview">
+            📎 {{ attachedFile.name }}
+            <button @click="attachedFile = null">✖️</button>
+          </div>
+
           <div class="icon-bar">
             <button class="icon-btn" @click="selectFile">
-              <img src="@/assets/plus.svg" alt="">
+              <img src="@/assets/plus.svg" alt="plus">
             </button>
             <div class="icon-bar-wrapper">
               <button class="icon-btn">
@@ -73,19 +80,15 @@
                 <img src="@/assets/mic.svg" alt="mic" />
               </button>
             </div>
-
           </div>
         </div>
-
       </main>
     </div>
-    <!-- Header -->
-
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import Sidebar from '@/components/sidebar.vue'
 
 const message = ref('')
@@ -93,54 +96,71 @@ const sidebarOpen = ref(false)
 const selectedAI = ref('chatgpt')
 const chatWindow = ref(null)
 const isTyping = ref(false)
-const messages = ref([
-  {
-    role: 'user',
-    text: 'Расстояние до луны с земли',
-    timestamp: new Date().toLocaleTimeString()
-  },
-  {
-    role: 'assistant',
-    text: `Среднее расстояние от Земли до Луны составляет примерно 384 400 км.\n• В перигее Луна — 363 300 км.\n• В апогее — 405 500 км.`,
-    timestamp: new Date().toLocaleTimeString()
-  }
-])
+const attachedFile = ref(null)
+const messages = ref([])
+
+const canSend = computed(() => message.value.trim() || attachedFile.value)
+
+function scrollToBottom() {
+  nextTick(() => {
+    if (chatWindow.value) chatWindow.value.scrollTop = chatWindow.value.scrollHeight
+  })
+}
+
+function isImage(fileName) {
+  return /\.(jpg|jpeg|png|gif)$/i.test(fileName)
+}
 
 function selectFile() {
   const input = document.createElement('input')
   input.type = 'file'
+  input.accept = 'image/*,.pdf,.doc,.docx'
   input.click()
   input.onchange = (e) => {
     const file = e.target.files[0]
-    console.log('📎 Выбран файл:', file)
-    // Можно тут сразу отправлять или добавлять в сообщения
+    if (!file) return
+
+    const url = URL.createObjectURL(file)
+    attachedFile.value = { name: file.name, url: url }
   }
 }
 
 function sendMessage() {
-  if (!message.value.trim()) return
+  if (!canSend.value) return
   const time = new Date().toLocaleTimeString()
-  messages.value.push({ role: 'user', text: message.value, timestamp: time })
+
+  if (attachedFile.value) {
+    messages.value.push({
+      role: 'user',
+      file: attachedFile.value,
+      timestamp: time
+    })
+    attachedFile.value = null
+  }
+
+  if (message.value.trim()) {
+    messages.value.push({
+      role: 'user',
+      text: message.value,
+      timestamp: time
+    })
+  }
+
   const userText = message.value
   message.value = ''
   isTyping.value = true
-  nextTick(() => scrollToBottom())
+  scrollToBottom()
 
   setTimeout(() => {
     messages.value.push({
       role: 'assistant',
-      text: `Вы выбрали: ${selectedAI.value}, сообщение: ${userText}`,
+      text: selectedAI.value === 'dalle' ? '🖼️ Вот сгенерированное изображение' : `Ответ на: ${userText}`,
+      file: selectedAI.value === 'dalle' ? { name: 'image.png', url: '/assets/sample.png' } : null,
       timestamp: new Date().toLocaleTimeString()
     })
     isTyping.value = false
-    nextTick(() => scrollToBottom())
+    scrollToBottom()
   }, 1000)
-}
-
-function scrollToBottom() {
-  if (chatWindow.value) {
-    chatWindow.value.scrollTop = chatWindow.value.scrollHeight
-  }
 }
 
 function toggleSidebar() {
@@ -158,6 +178,7 @@ function selectChat(title) {
 }
 </script>
 
+
 <style >
 @import "index.css";
 *{
@@ -173,7 +194,22 @@ body{
   display: flex;
   flex-direction: column;
 }
+.file-preview {
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+.file-image {
+  max-width: 220px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
 .app-container {
   display: flex;
   overflow: hidden;
