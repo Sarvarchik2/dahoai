@@ -165,6 +165,9 @@ function selectChat(title) {
   padding: 0;
   box-sizing: border-box;
 }
+body{
+  background: #fff;
+}
 .daho-wrapper{
   width: 100%;
   display: flex;
