@@ -22,23 +22,12 @@
 
       <main class="chat-area container">
         <div class="chat-message" ref="chatWindow">
-          <div
+          <ChatMessage
               v-for="(msg, index) in messages"
               :key="index"
-              :class="msg.role === 'user' ? 'user-message' : 'assistant-message'"
-          >
-            <div class="message-wrapper">
-              <img v-if="msg.role === 'assistant'" src="@/assets/bot.jpg" alt="AI" class="avatar" />
-              <div :class="['message-bubble', msg.role === 'user' ? 'message-bubble-user' : 'message-bubble-bot']">
-                <span class="timestamp">{{ msg.timestamp }}</span>
-                <template v-if="msg.file">
-                  <img v-if="isImage(msg.file.name)" :src="msg.file.url" class="file-image" />
-                  <a v-else :href="msg.file.url" target="_blank">📎 {{ msg.file.name }}</a>
-                </template>
-                <p class="message-text" v-if="msg.text">{{ msg.text }}</p>
-              </div>
-            </div>
-          </div>
+              :msg="msg"
+              :is-image="isImage"
+          />
 
           <div v-if="isTyping" class="assistant-message">
             <div class="message-wrapper">
@@ -52,33 +41,47 @@
         </div>
 
         <!-- Input + File Preview -->
-        <div class="chat-input-extended">
-          <div class="input-wrapper">
-            <input
-                v-model="message"
-                type="text"
-                placeholder="Спроси что угодно"
-                @keydown.enter="sendMessage"
-            />
-            <img v-if="canSend" src="@/assets/send.svg" alt="send" @click="sendMessage" />
-          </div>
+        <div class="chat-input-wrapper">
+          <div class="chat-input-extended">
+            <div class="file-preview" v-if="attachedFiles.length">
+              <div v-for="(file, index) in attachedFiles" :key="index" class="file-preview-item">
+                <div class="file-content">
+                  <div class="file-icon">📄</div>
+                  <span class="file-name">{{ file.name }}</span>
+                  <button class="remove-file" @click="removeFile(index)" aria-label="Remove file">&times;</button>
+                </div>
+              </div>
+            </div>
 
-          <div v-if="attachedFile" class="file-preview">
-            📎 {{ attachedFile.name }}
-            <button @click="attachedFile = null">✖️</button>
-          </div>
+            <div class="input-wrapper">
+              <input
+                  v-model="message"
+                  ref="messageInput"
+                  type="text"
+                  placeholder="Спроси что угодно"
+                  @keydown.enter="sendMessage"
+              />
+              <img
+                  v-if="canSend"
+                  src="@/assets/send.svg"
+                  alt="send"
+                  @click="sendMessage"
+                  :class="{ disabled: !canSend }"
+              />
+            </div>
 
-          <div class="icon-bar">
-            <button class="icon-btn" @click="selectFile">
-              <img src="@/assets/plus.svg" alt="plus">
-            </button>
-            <div class="icon-bar-wrapper">
-              <button class="icon-btn">
-                <img src="@/assets/voice.svg" alt="voice" />
+            <div class="icon-bar">
+              <button class="icon-btn" @click="selectFile">
+                <img src="@/assets/plus.svg" alt="plus" />
               </button>
-              <button class="icon-btn">
-                <img src="@/assets/mic.svg" alt="mic" />
-              </button>
+              <div class="icon-bar-wrapper">
+                <button class="icon-btn">
+                  <img src="@/assets/voice.svg" alt="voice" />
+                </button>
+                <button class="icon-btn">
+                  <img src="@/assets/mic.svg" alt="mic" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -90,16 +93,18 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import Sidebar from '@/components/sidebar.vue'
+import ChatMessage from '@/components/ChatMessage.vue'
 
 const message = ref('')
 const sidebarOpen = ref(false)
 const selectedAI = ref('chatgpt')
 const chatWindow = ref(null)
+const messageInput = ref(null)
 const isTyping = ref(false)
-const attachedFile = ref(null)
+const attachedFiles = ref([])
 const messages = ref([])
 
-const canSend = computed(() => message.value.trim() || attachedFile.value)
+const canSend = computed(() => message.value.trim() || attachedFiles.value.length)
 
 function scrollToBottom() {
   nextTick(() => {
@@ -115,47 +120,58 @@ function selectFile() {
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*,.pdf,.doc,.docx'
+  input.multiple = true
   input.click()
   input.onchange = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    const url = URL.createObjectURL(file)
-    attachedFile.value = { name: file.name, url: url }
+    const files = Array.from(e.target.files)
+    files.forEach(file => {
+      const url = URL.createObjectURL(file)
+      attachedFiles.value.push({ name: file.name, url })
+    })
   }
+}
+
+function removeFile(index) {
+  attachedFiles.value.splice(index, 1)
 }
 
 function sendMessage() {
   if (!canSend.value) return
+
   const time = new Date().toLocaleTimeString()
 
-  if (attachedFile.value) {
-    messages.value.push({
-      role: 'user',
-      file: attachedFile.value,
-      timestamp: time
+  if (attachedFiles.value.length) {
+    attachedFiles.value.forEach(file => {
+      messages.value.push({ role: 'user', file, timestamp: time })
+      if (isImage(file.name)) {
+        const botMessage = { role: 'assistant', file, text: '', timestamp: time, generating: true }
+        messages.value.push(botMessage)
+
+        setTimeout(() => {
+          botMessage.generating = false
+          botMessage.text = '🖼️ Вот сгенерированное изображение'
+        }, 3000)
+      }
     })
-    attachedFile.value = null
+    attachedFiles.value = []
   }
 
   if (message.value.trim()) {
-    messages.value.push({
-      role: 'user',
-      text: message.value,
-      timestamp: time
-    })
+    messages.value.push({ role: 'user', text: message.value, timestamp: time })
+    scrollToBottom()
   }
 
   const userText = message.value
   message.value = ''
   isTyping.value = true
   scrollToBottom()
+  messageInput.value?.blur()
 
   setTimeout(() => {
     messages.value.push({
       role: 'assistant',
       text: selectedAI.value === 'dalle' ? '🖼️ Вот сгенерированное изображение' : `Ответ на: ${userText}`,
-      file: selectedAI.value === 'dalle' ? { name: 'image.png', url: '/assets/sample.png' } : null,
+      file: selectedAI.value === 'dalle' ? { name: 'image.png', url: '@/assets/bot.jpg' } : null,
       timestamp: new Date().toLocaleTimeString()
     })
     isTyping.value = false
@@ -169,11 +185,7 @@ function toggleSidebar() {
 
 function selectChat(title) {
   messages.value = [
-    {
-      role: 'user',
-      text: title,
-      timestamp: new Date().toLocaleTimeString()
-    }
+    { role: 'user', text: title, timestamp: new Date().toLocaleTimeString() }
   ]
 }
 </script>
@@ -195,20 +207,117 @@ body{
   flex-direction: column;
 }
 .file-preview {
-  margin: 6px 0 0;
-  padding: 6px 10px;
-  background: #f5f5f5;
-  border-radius: 10px;
-  font-size: 13px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 12px;
+  padding: 8px 10px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  margin: 10px;
+  justify-content: space-between;
+  max-width: 300px;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.file-preview-wrapper{
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+.file-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.image-wrapper {
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.image-caption {
+  color: #999;
+  font-size: 14px;
+  font-weight: 500;
+}
+.image-actions button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+.image-actions button img{
+  width: 20px;
+  height: 20px;
+}
+.image-actions a img{
+  width: 20px;
+  height: 20px;
+}
+.file-image-preview {
+  width: 300px;
+  border-radius: 12px;
+}
+.file-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+.zoom-fade-enter-active {
+  animation: zoomFadeIn 0.6s ease;
+}
+@keyframes zoomFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.file-name {
+  font-weight: 500;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
 }
 
-.file-image {
-  max-width: 220px;
-  border-radius: 10px;
-  margin-bottom: 6px;
+.remove-file {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: white;
+  border: 1px solid #000;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 .app-container {
   display: flex;
@@ -231,7 +340,14 @@ body{
 
 }
 
+.chat-message {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
 
+.chat-message::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
 
 .chat-header {
   display: flex;
@@ -260,25 +376,41 @@ body{
   font-weight: 600;
   font-size: 18px;
 }
+.loading-spinner {
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  border: 2px solid #999;
+  border-top-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 
 
 .chat-area {
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  overflow: hidden;
+  height: calc(100vh - 60px); /* высота минус header */
 }
 
 .chat-message {
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
+  padding: 20px;
+  scroll-behavior: smooth;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  scroll-behavior: smooth;
+  gap: 10px;
 }
+
+
 
 .message-wrapper {
   display: flex;
@@ -312,6 +444,10 @@ body{
   max-width: 100%;
   position: relative;
 }
+.message-bubble img{
+  width: 300px;
+  object-fit: contain;
+}
 .message-bubble-user{
   border-bottom-right-radius: 0;
 }
@@ -329,7 +465,10 @@ body{
   line-height: 1.4;
   color: #333;
 }
-
+.chat-input-wrapper {
+  padding: 20px;
+  background: white;
+}
 .chat-input {
   display: flex;
   align-items: center;
@@ -386,20 +525,26 @@ body{
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden;
   border: 2px solid #000;
   border-radius: 20px;
-  border-top: none;
 }
 
 .input-wrapper {
   display: flex;
   border: 2px solid #000;
-  border-radius: 20px;
+  border-radius: 12px;
   border-left: none;
   border-right: none;
   overflow: hidden;
+  border-top: none;
+  padding: 5px;
 }
 
+.input-wrapper img{
+  width: 40px;
+  height: 40px;
+}
 .input-wrapper input {
   flex: 1;
   padding: 12px 16px;
