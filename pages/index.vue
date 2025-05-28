@@ -105,15 +105,13 @@
     </div>
     <!-- Модальное окно записи -->
     <div v-if="isRecording" class="record-modal">
-      <div
-          class="record-circle"
-          :style="{
-    transform: `scale(${1 + audioLevel * 1.5})`,
-    opacity: 0.7 + audioLevel * 0.3
-  }"
-      />
+      <canvas ref="circleCanvas" class="record-circle-canvas" width="200" height="200"></canvas>
 
-      <!-- Визуализация звуковых волн -->
+
+
+      <div class="record-timer">
+        {{ Math.floor(recordTime / 60) }}:{{ (recordTime % 60).toString().padStart(2, '0') }}
+      </div>
       <div class="waveform">
         <div
             v-for="(bar, i) in waveformBars"
@@ -122,9 +120,7 @@
             :style="{ height: `${bar * 100}%` }"
         ></div>
       </div>
-      <div class="record-timer">
-        {{ Math.floor(recordTime / 60) }}:{{ (recordTime % 60).toString().padStart(2, '0') }}
-      </div>
+
 
       <div class="record-controls">
         <button @click="stopRecording">
@@ -169,6 +165,40 @@ let audioContext = null
 let analyser = null
 let source = null
 
+const circleCanvas = ref(null)
+function drawWavyCircle(level) {
+  const canvas = circleCanvas.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  const centerX = canvas.width / 2
+  const centerY = canvas.height / 2
+  const baseRadius = 80 + level * 20
+  const waveCount = 30 // ✅ больше точек = плавнее форма
+  const waveAmplitude = level * 10 // ✅ меньше амплитуда = тупее волны
+  const waveFrequency = 0.5 // ✅ меньше частота = плавнее переходы
+
+  ctx.beginPath()
+  for (let i = 0; i <= waveCount; i++) {
+    const angle = (i / waveCount) * Math.PI * 2
+    const radius = baseRadius + Math.sin(i * waveFrequency + Date.now() / 500) * waveAmplitude
+    const x = centerX + Math.cos(angle) * radius
+    const y = centerY + Math.sin(angle) * radius
+    if (i === 0) {
+      ctx.moveTo(x, y)
+    } else {
+      ctx.lineTo(x, y)
+    }
+  }
+  ctx.closePath()
+  ctx.fillStyle = 'black'
+  ctx.fill()
+}
+
+
+
+
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -189,6 +219,7 @@ async function startRecording() {
       const normalized = Math.min(1, (volume / 255) * 4)
       smoothedVolume = smoothedVolume * 0.8 + normalized * 0.2
       audioLevel.value = smoothedVolume
+      drawWavyCircle(smoothedVolume)
 
       waveformBars.value = waveformBars.value.map((_, i) => {
         const target = Math.random() * smoothedVolume
@@ -380,6 +411,21 @@ messages.value.push({
   border-radius: 4px;
   transition: height 0.15s ease;
 }
+.record-circle-canvas {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 20px;
+}
+
+
+@keyframes pulseWave {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
 
 
 .dropdown-wrapper{
@@ -444,6 +490,17 @@ messages.value.push({
   display: flex;
   gap: 16px;
   margin-top: 40px;
+}
+.record-controls button {
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  padding: 15px;
+}
+.record-controls button img{
+  width: 100%;
+  height: 100%;
 }
 
 a{
