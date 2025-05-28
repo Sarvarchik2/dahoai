@@ -10,11 +10,12 @@
         <li
             v-for="(chat, i) in group.items"
             :key="i"
-            @click="selectChat(chat)"
+            @click="() => emit('selectChat', chat)"
             :class="['chat-item', { active: chat === selectedChat }]"
         >
           {{ chat }}
         </li>
+
       </ul>
     </div>
   </aside>
@@ -22,10 +23,15 @@
 
 <script setup>
 import { ref, defineEmits } from 'vue'
+const emit = defineEmits(['selectChat', 'closeSidebar'])
 
-const emit = defineEmits(['selectChat', 'closeSidebar']) // добавлен closeSidebar
-const selectedChat = ref(null)
+function handleChatSelection(chatTitle) {
+  emit('selectChat', chatTitle)
+}
 
+function closeMenu() {
+  emit('closeSidebar')
+}
 const chatGroups = [
   {
     title: 'Сегодня',
@@ -47,16 +53,6 @@ const chatGroups = [
 
 function createChat() {
   alert('Функция создания нового чата будет реализована позже')
-}
-
-
-function selectChat(chat) {
-  selectedChat.value = chat
-  emit('selectChat', chat)
-
-  if (window.innerWidth <= 769) {
-    emit('closeSidebar')
-  }
 }
 
 

@@ -11,13 +11,25 @@
         <button class="toggle-sidebar" @click="toggleSidebar">
           <img src="@/assets/menu.svg" alt="menu" />
         </button>
-        <select v-model="selectedAI">
-          <option value="chatgpt">ChatGPT</option>
-          <option value="dalle">DALL·E (Картинки)</option>
-          <option value="whisper">Whisper (Речь в текст)</option>
-          <option value="codegen">Code Generator</option>
-        </select>
-        <div class="brand-logo">Daho AI</div>
+        <div class="dropdown-wrapper">
+          <DropdownMenu label="ChatGPT" position="left">
+            <a href="#">MidJourney</a>
+            <a href="#">DikSeek</a>
+            <a href="#">Mistral</a>
+            <a href="#">Gemma</a>
+            <a href="#">Еще больше</a>
+          </DropdownMenu>
+
+
+          <DropdownMenu label="Daho AI" position="right">
+            <a href="#">Главная</a>
+            <a href="#">Инструменты</a>
+            <a href="#">Профиль</a>
+            <a href="#">Подписки</a>
+            <a href="#">Выйти с аккаунта</a>
+          </DropdownMenu>
+        </div>
+
       </header>
 
       <main class="chat-area container">
@@ -27,7 +39,10 @@
               :key="index"
               :msg="msg"
               :is-image="isImage"
+              :has-user-message="messages.some(m => m.role === 'user')"
           />
+
+
 
           <div v-if="isTyping" class="assistant-message">
             <div class="message-wrapper">
@@ -43,8 +58,8 @@
         <!-- Input + File Preview -->
         <div class="chat-input-wrapper">
           <div class="chat-input-extended">
-            <div class="file-preview" v-if="attachedFiles.length">
-              <div v-for="(file, index) in attachedFiles" :key="index" class="file-preview-item">
+            <div class="file-preview-wrapper" v-if="attachedFiles.length">
+              <div v-for="(file, index) in attachedFiles" :key="index" class="file-preview">
                 <div class="file-content">
                   <div class="file-icon">📄</div>
                   <span class="file-name">{{ file.name }}</span>
@@ -52,6 +67,7 @@
                 </div>
               </div>
             </div>
+
 
             <div class="input-wrapper">
               <input
@@ -104,7 +120,18 @@ const isTyping = ref(false)
 const attachedFiles = ref([])
 const messages = ref([])
 
+import DropdownMenu from '@/components/DropdownMenu.vue'
+
+
+
 const canSend = computed(() => message.value.trim() || attachedFiles.value.length)
+const hasUserMessage = computed(() =>
+    messages.value.some((msg) => msg.role === 'user')
+)
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value
+}
 
 function scrollToBottom() {
   nextTick(() => {
@@ -115,7 +142,6 @@ function scrollToBottom() {
 function isImage(fileName) {
   return /\.(jpg|jpeg|png|gif)$/i.test(fileName)
 }
-
 function selectFile() {
   const input = document.createElement('input')
   input.type = 'file'
@@ -123,83 +149,116 @@ function selectFile() {
   input.multiple = true
   input.click()
   input.onchange = (e) => {
-    const files = Array.from(e.target.files)
-    files.forEach(file => {
-      const url = URL.createObjectURL(file)
-      attachedFiles.value.push({ name: file.name, url })
-    })
+    const files = Array.from(e.target.files).map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+      raw: file // если когда-то захочешь отправлять на сервер
+    }))
+    attachedFiles.value.push(...files)
   }
 }
+
 
 function removeFile(index) {
   attachedFiles.value.splice(index, 1)
 }
 
 function sendMessage() {
-  if (!canSend.value) return
+  if (!canSend.value) return;
 
-  const time = new Date().toLocaleTimeString()
+  const time = new Date().toLocaleTimeString();
 
+  // 1. Отправка одного сообщения с файлами
   if (attachedFiles.value.length) {
-    attachedFiles.value.forEach(file => {
-      messages.value.push({ role: 'user', file, timestamp: time })
-      if (isImage(file.name)) {
-        const botMessage = { role: 'assistant', file, text: '', timestamp: time, generating: true }
-        messages.value.push(botMessage)
+    const files = [...attachedFiles.value];
+    messages.value.push({
+      role: 'user',
+      files,
+      timestamp: time
+    });
 
-        setTimeout(() => {
-          botMessage.generating = false
-          botMessage.text = '🖼️ Вот сгенерированное изображение'
-        }, 3000)
-      }
-    })
-    attachedFiles.value = []
+    // 2. Ответ ассистента (если есть картинки среди файлов)
+    if (files.some(file => isImage(file.name))) {
+      const botMessage = {
+        role: 'assistant',
+        files,
+        text: '',
+        generating: true,
+        timestamp: time
+      };
+
+      messages.value.push(botMessage);
+
+      setTimeout(() => {
+        botMessage.generating = false;
+        botMessage.text = '🖼️ Вот сгенерированное изображение';
+      }, 3000);
+    }
+
+    attachedFiles.value = [];
   }
 
+  // 3. Отправка текстового сообщения (если есть)
   if (message.value.trim()) {
-    messages.value.push({ role: 'user', text: message.value, timestamp: time })
-    scrollToBottom()
+    messages.value.push({ role: 'user', text: message.value, timestamp: time });
+    scrollToBottom();
   }
 
-  const userText = message.value
-  message.value = ''
-  isTyping.value = true
-  scrollToBottom()
-  messageInput.value?.blur()
+  // 4. Ответ ассистента на текст
+  const userText = message.value;
+  message.value = '';
+  isTyping.value = true;
+  scrollToBottom();
+  messageInput.value?.blur();
 
   setTimeout(() => {
     messages.value.push({
       role: 'assistant',
-      text: selectedAI.value === 'dalle' ? '🖼️ Вот сгенерированное изображение' : `Ответ на: ${userText}`,
-      file: selectedAI.value === 'dalle' ? { name: 'image.png', url: '@/assets/bot.jpg' } : null,
+      text: selectedAI.value === 'dalle'
+          ? '🖼️ Вот сгенерированное изображение'
+          : `Ответ на: ${userText}`,
       timestamp: new Date().toLocaleTimeString()
-    })
-    isTyping.value = false
-    scrollToBottom()
-  }, 1000)
+    });
+    isTyping.value = false;
+    scrollToBottom();
+  }, 1000);
 }
+messages.value.push({
+  role: 'assistant',
+  text: '👋 Привет! Чем могу помочь?',
+  welcome: true,
+  timestamp: new Date().toLocaleTimeString()
+})
 
-function toggleSidebar() {
-  sidebarOpen.value = !sidebarOpen.value
-}
-
-function selectChat(title) {
-  messages.value = [
-    { role: 'user', text: title, timestamp: new Date().toLocaleTimeString() }
-  ]
-}
 </script>
 
 
 <style >
+
 @import "index.css";
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+.dropdown-wrapper{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+a{
+  text-decoration: none;
+}
 body{
   background: #fff;
+}
+.dropdown-menu a{
+  padding: 10px 14px;
+  color: #000;
+}
+.dropdown-menu a:hover{
+  background: rgba(102, 102, 102, 0.37);
 }
 .daho-wrapper{
   width: 100%;
@@ -263,6 +322,7 @@ body{
   width: 300px;
   border-radius: 12px;
 }
+
 .file-icon {
   width: 28px;
   height: 28px;
@@ -272,6 +332,7 @@ body{
   justify-content: center;
   font-size: 18px;
 }
+
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.5s ease;
 }
@@ -420,6 +481,7 @@ body{
 }
 
 .user-message {
+  display: flex;
   align-self: flex-end;
   flex-direction: row-reverse;
 }
