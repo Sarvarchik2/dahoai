@@ -37,6 +37,7 @@ const positionClass = computed(() => {
   font-size: 18px;
   cursor: pointer;
   display: flex;
+  color: #000;
   align-items: center;
   gap: 4px;
 }
