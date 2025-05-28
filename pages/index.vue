@@ -1,11 +1,9 @@
 <template>
   <div class="app-container">
-    <!-- Sidebar -->
     <div :class="['sidebar-wrapper', { open: sidebarOpen }]">
       <Sidebar :open="sidebarOpen" @selectChat="selectChat" @closeSidebar="toggleSidebar" />
     </div>
 
-    <!-- Chat Wrapper -->
     <div class="daho-wrapper">
       <header class="chat-header">
         <button class="toggle-sidebar" @click="toggleSidebar">
@@ -13,20 +11,19 @@
         </button>
         <div class="dropdown-wrapper">
           <DropdownMenu label="ChatGPT" position="left">
-            <a href="#">MidJourney</a>
-            <a href="#">DikSeek</a>
-            <a href="#">Mistral</a>
-            <a href="#">Gemma</a>
-            <a href="#">Еще больше</a>
+            <NuxtLink to="#">MidJourney</NuxtLink>
+            <NuxtLink to="#">DikSeek</NuxtLink>
+            <NuxtLink to="#">Mistral</NuxtLink>
+            <NuxtLink to="#">Gemma</NuxtLink>
           </DropdownMenu>
 
 
           <DropdownMenu label="Daho AI" position="right">
-            <a href="#">Главная</a>
-            <a href="#">Инструменты</a>
-            <a href="#">Профиль</a>
-            <a href="#">Подписки</a>
-            <a href="#">Выйти с аккаунта</a>
+            <NuxtLink to="/">Чат</NuxtLink>
+            <NuxtLink to="/profilepage">Профиль</NuxtLink>
+            <NuxtLink to="/">Подписки</NuxtLink>
+            <NuxtLink to="/security">Безопасность</NuxtLink>
+            <NuxtLink to="#">Выйти с аккаунта</NuxtLink>
           </DropdownMenu>
         </div>
 
@@ -103,7 +100,6 @@
         </div>
       </main>
     </div>
-    <!-- Модальное окно записи -->
     <div v-if="isRecording" class="record-modal">
       <canvas ref="circleCanvas" class="record-circle-canvas" width="200" height="200"></canvas>
 

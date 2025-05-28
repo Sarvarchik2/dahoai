@@ -20,7 +20,7 @@
           </div>
 
           <div class="actions">
-            <button class="logout">Перейти в чат</button>
+            <NuxtLink to="/" class="logout">Перейти в чат</NuxtLink>
             <button class="logout"  @click="showLogoutModal = true">Выйти с аккаунта</button>
           </div>
 
@@ -308,6 +308,19 @@ function cancelEdit() {
   border-radius: 6px;
   background: white;
   font-weight: 500;
+  cursor: pointer;
+}
+.actions a {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 2px solid black;
+  border-radius: 6px;
+  background: white;
+  font-weight: 500;
+  text-align: center;
+
+  color: #000;
   cursor: pointer;
 }
 

@@ -1,6 +1,5 @@
 <template>
   <div class="profile-page">
-<!--    <div class="container">-->
       <div class="container profile-page-wrapper">
         <div class="sidebar">
 
@@ -14,7 +13,7 @@
             </ul>
           </div>
           <div class="actions">
-            <button class="logout">Перейти в чат</button>
+            <NuxtLink to="/" class="logout">Перейти в чат</NuxtLink>
             <button class="logout"  @click="showLogoutModal = true">Выйти с аккаунта</button>
           </div>
         </div>
@@ -29,19 +28,16 @@
             </div>
           </div>
 
-          <!-- Кнопки смены аватара (только при редактировании) -->
           <div class="avatar-buttons" v-if="isEditing">
             <button @click="uploadPhoto"><img src="@/assets/upload.svg" alt="upload"> Загрузить фото</button>
             <button @click="deletePhoto"><img src="@/assets/delete.svg" alt="upload"> Удалить фото</button>
           </div>
 
-          <!-- Имя -->
           <label v-if="isEditing">
             Имя
             <input type="text" v-model="name" />
           </label>
 
-          <!-- Фамилия -->
           <label v-if="isEditing">
             Фамилия
             <input type="text" v-model="surname" />
@@ -176,7 +172,18 @@ function deletePhoto() {
   cursor: pointer;
 }
 
-
+.actions a {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 2px solid black;
+  border-radius: 6px;
+  background: white;
+  font-weight: 500;
+  color: #000;
+  cursor: pointer;
+  text-align: center;
+}
 
 
 
