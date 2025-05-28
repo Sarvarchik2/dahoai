@@ -10,11 +10,12 @@
         <li
             v-for="(chat, i) in group.items"
             :key="i"
-            @click="() => emit('selectChat', chat)"
+            @click="() => handleChatSelection(chat)"
             :class="['chat-item', { active: chat === selectedChat }]"
         >
           {{ chat }}
         </li>
+
 
       </ul>
     </div>
@@ -27,7 +28,9 @@ const emit = defineEmits(['selectChat', 'closeSidebar'])
 
 function handleChatSelection(chatTitle) {
   emit('selectChat', chatTitle)
+  emit('closeSidebar') // Закрытие сайдбара
 }
+
 
 function closeMenu() {
   emit('closeSidebar')

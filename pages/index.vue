@@ -94,7 +94,7 @@
                 <button class="icon-btn">
                   <img src="@/assets/voice.svg" alt="voice" />
                 </button>
-                <button class="icon-btn">
+                <button class="icon-btn"  @click="startRecording">
                   <img src="@/assets/mic.svg" alt="mic" />
                 </button>
               </div>
@@ -102,6 +102,35 @@
           </div>
         </div>
       </main>
+    </div>
+    <!-- Модальное окно записи -->
+    <div v-if="isRecording" class="record-modal">
+      <div
+          class="record-circle"
+          :style="{
+    transform: `scale(${1 + audioLevel * 1.5})`,
+    opacity: 0.7 + audioLevel * 0.3
+  }"
+      />
+
+      <!-- Визуализация звуковых волн -->
+      <div class="waveform">
+        <div
+            v-for="(bar, i) in waveformBars"
+            :key="i"
+            class="bar"
+            :style="{ height: `${bar * 100}%` }"
+        ></div>
+      </div>
+      <div class="record-timer">
+        {{ Math.floor(recordTime / 60) }}:{{ (recordTime % 60).toString().padStart(2, '0') }}
+      </div>
+
+      <div class="record-controls">
+        <button @click="stopRecording">
+          <img src="@/assets/stop.svg" alt="stop" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -122,6 +151,100 @@ const messages = ref([])
 
 import DropdownMenu from '@/components/DropdownMenu.vue'
 
+
+// mic
+
+const audioLevel = ref(0)
+let smoothedVolume = 0
+const waveformBars = ref(new Array(20).fill(0))
+
+const isRecording = ref(false)
+const mediaRecorder = ref(null)
+const audioChunks = ref([])
+const recordTime = ref(0)
+let timerInterval = null
+
+// переменные микрофона
+let audioContext = null
+let analyser = null
+let source = null
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    audioContext = new AudioContext()
+    await audioContext.resume()
+
+    source = audioContext.createMediaStreamSource(stream)
+    analyser = audioContext.createAnalyser()
+    analyser.fftSize = 256
+    source.connect(analyser)
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount)
+    let lastWaveform = new Array(20).fill(0)
+
+    function updateVolume() {
+      analyser.getByteFrequencyData(dataArray)
+      const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length
+      const normalized = Math.min(1, (volume / 255) * 4)
+      smoothedVolume = smoothedVolume * 0.8 + normalized * 0.2
+      audioLevel.value = smoothedVolume
+
+      waveformBars.value = waveformBars.value.map((_, i) => {
+        const target = Math.random() * smoothedVolume
+        lastWaveform[i] = lastWaveform[i] * 0.7 + target * 0.3
+        return lastWaveform[i]
+      })
+    }
+    function animate() {
+      updateVolume()
+      requestAnimationFrame(animate)
+    }
+
+
+    animate()
+
+    mediaRecorder.value = new MediaRecorder(stream)
+    audioChunks.value = []
+
+    mediaRecorder.value.ondataavailable = e => audioChunks.value.push(e.data)
+    mediaRecorder.value.onstop = () => {
+      const blob = new Blob(audioChunks.value, { type: 'audio/webm' })
+      const url = URL.createObjectURL(blob)
+
+      messages.value.push({
+        role: 'user',
+        file: { name: 'voice.webm', url },
+        timestamp: new Date().toLocaleTimeString(),
+      })
+
+      scrollToBottom()
+    }
+
+    mediaRecorder.value.start()
+    recordTime.value = 0
+    timerInterval = setInterval(() => recordTime.value++, 1000)
+    isRecording.value = true
+
+  } catch (err) {
+    console.error('Ошибка микрофона', err)
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder.value && mediaRecorder.value.state !== 'inactive') {
+    mediaRecorder.value.stop()
+  }
+  isRecording.value = false
+  clearInterval(timerInterval)
+  timerInterval = null
+  if (audioContext) {
+    audioContext.close()
+    audioContext = null
+  }
+}
+
+// mic
 
 
 const canSend = computed(() => message.value.trim() || attachedFiles.value.length)
@@ -241,10 +364,86 @@ messages.value.push({
   padding: 0;
   box-sizing: border-box;
 }
+
+.waveform {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 60px;
+  margin-top: 20px;
+}
+
+.bar {
+  width: 4px;
+  background: black;
+  border-radius: 4px;
+  transition: height 0.15s ease;
+}
+
+
 .dropdown-wrapper{
   width: 100%;
   display: flex;
   justify-content: space-between;
+}
+.record-circle {
+  width: 60px;
+  height: 60px;
+  background: black;
+  border-radius: 50%;
+  transform-origin: center;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+@keyframes pulseLive {
+  0%   { transform: scale(1); opacity: 0.7; }
+  50%  { transform: scale(1.3); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+
+.record-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.record-timer {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #222;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+
+.record-controls {
+  display: flex;
+  gap: 16px;
+  margin-top: 40px;
 }
 
 a{

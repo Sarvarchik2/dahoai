@@ -96,7 +96,10 @@ const props = defineProps({
   isImage: Function,
   hasUserMessage: Boolean
 })
+
+
 </script>
+
 
 <style scoped>
 .fade-enter-active, .fade-leave-active {
