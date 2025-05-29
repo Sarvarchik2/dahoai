@@ -377,6 +377,10 @@ function cancelEdit() {
     flex-direction: column;
     padding: 20px;
   }
+  .content{
+    height: 100%;
+    overflow-y: scroll;
+  }
 }
 
 @media (max-width: 480px) {

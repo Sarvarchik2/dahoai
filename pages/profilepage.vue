@@ -333,6 +333,22 @@ input {
 }
 
 @media (max-width: 768px) {
+  .profile-info{
+    display: flex
+  ;
+
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    height: 80%;
+    overflow-y: scroll;
+  }
+  .avatar-section span{
+    font-size: 18px;
+  }
+  .avatar-section small{
+    font-size: 16px;
+  }
   .profile-page {
     flex-direction: column;
     padding: 20px;
