@@ -1,35 +1,46 @@
 <template>
   <div class="profile-page">
       <div class="container profile-page-wrapper">
-        <div class="sidebar">
-
-          <div class="sidebar-wrapper">
+        <div class="profile-sidebar profile-sidebar-desctop">
+          <div class="profile-sidebar-wrapper">
             <h2>Аккаунт</h2>
             <p class="subtitle">Настройки</p>
             <ul>
-              <li>
-                <button><img src="@/assets/user.svg" alt="user"> Профиль</button>
-              </li>
-              <li>
-                <button><img src="@/assets/key.svg" alt="key"> Безопасность</button>
-              </li>
-              <li>
-                <button><img src="@/assets/bill.svg" alt="bill"> Подписки</button>
-              </li>
+              <li><button><img src="@/assets/user.svg" alt="user"> Профиль</button></li>
+              <li><button><img src="@/assets/key.svg" alt="key"> Безопасность</button></li>
+              <li><button><img src="@/assets/bill.svg" alt="bill"> Подписки</button></li>
             </ul>
           </div>
-
-          <div class="actions">
+          <div class="profile-actions">
             <NuxtLink to="/" class="logout">Перейти в чат</NuxtLink>
-            <button class="logout"  @click="showLogoutModal = true">Выйти с аккаунта</button>
+            <button class="logout" @click="showLogoutModal = true">Выйти с аккаунта</button>
           </div>
+        </div>
 
+        <div class="profile-sidebar profile-sidebar-mobile" :class="{ 'profile-sidebar-mobile-active': isSidebarOpen }">
+          <div class="profile-sidebar-wrapper">
+            <h2>Аккаунт</h2>
+            <button class="profile-close-btn" @click="toggleSidebar"><img src="@/assets/clode.png" alt="close"/></button>
+            <p class="subtitle">Настройки</p>
+            <ul>
+              <li><NuxtLink to="/profilepage"><img src="@/assets/user.svg" alt="user"> Профиль</NuxtLink></li>
+              <li><NuxtLink to="/security"><img src="@/assets/key.svg" alt="key"> Безопасность</NuxtLink></li>
+              <li><NuxtLink to="/subscription"><img src="@/assets/bill.svg" alt="bill"> Подписки</NuxtLink></li>
+            </ul>
+          </div>
+          <div class="profile-actions">
+            <NuxtLink to="/" class="logout">Перейти в чат</NuxtLink>
+            <button class="logout" @click="showLogoutModal = true">Выйти с аккаунта</button>
+          </div>
         </div>
 
 
 
         <section class="content">
-          <h2>Безопасность</h2>
+          <h2>Безопасность
+
+            <button class="sidebar-open-btn" @click="toggleSidebar"><img src="@/assets/menu.png" alt=""></button>
+          </h2>
 
           <div class="field-row">
             <label>Пароль</label>
@@ -116,7 +127,11 @@ function logout() {
   console.log('Выход из аккаунта')
   showLogoutModal.value = false
 }
+const isSidebarOpen = ref(false)
 
+function toggleSidebar() {
+  isSidebarOpen.value = !isSidebarOpen.value
+}
 
 function savePassword() {
   if (newPassword.value && confirmPassword.value && newPassword.value === confirmPassword.value) {
@@ -139,7 +154,8 @@ function cancelEdit() {
 </script>
 
 
-<style scoped>
+<style >
+@import "./sidevar.css";
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -202,6 +218,9 @@ function cancelEdit() {
   padding: 30px;
   border-bottom: 2px solid #000;
   font-size: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .sidebar-wrapper{
   display: flex;

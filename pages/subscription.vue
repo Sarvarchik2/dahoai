@@ -35,7 +35,9 @@
       </div>
 
       <section class="content">
-        <h2>Безопасность   <button class="sidebar-open-btn" @click="toggleSidebar"><img src="@/assets/menu.png" alt=""></button>
+        <h2>Подписки
+          <button class="sidebar-open-btn" @click="toggleSidebar"><img src="@/assets/menu.png" alt=""></button>
+
         </h2>
         <div class="sub-wrapper">
           <div class="sub-wrapper-item">

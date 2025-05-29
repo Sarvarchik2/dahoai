@@ -1,9 +1,8 @@
 <template>
   <div class="profile-page">
       <div class="container profile-page-wrapper">
-        <div class="sidebar">
-
-          <div class="sidebar-wrapper">
+        <div class="profile-sidebar profile-sidebar-desctop">
+          <div class="profile-sidebar-wrapper">
             <h2>Аккаунт</h2>
             <p class="subtitle">Настройки</p>
             <ul>
@@ -12,17 +11,36 @@
               <li><button><img src="@/assets/bill.svg" alt="bill"> Подписки</button></li>
             </ul>
           </div>
-          <div class="actions">
+          <div class="profile-actions">
             <NuxtLink to="/" class="logout">Перейти в чат</NuxtLink>
-            <button class="logout"  @click="showLogoutModal = true">Выйти с аккаунта</button>
+            <button class="logout" @click="showLogoutModal = true">Выйти с аккаунта</button>
+          </div>
+        </div>
+
+        <div class="profile-sidebar profile-sidebar-mobile" :class="{ 'profile-sidebar-mobile-active': isSidebarOpen }">
+          <div class="profile-sidebar-wrapper">
+            <h2>Аккаунт</h2>
+            <button class="profile-close-btn" @click="toggleSidebar"><img src="@/assets/clode.png" alt="close"/></button>
+            <p class="subtitle">Настройки</p>
+            <ul>
+              <li><NuxtLink to="/profilepage"><img src="@/assets/user.svg" alt="user"> Профиль</NuxtLink></li>
+              <li><NuxtLink to="/security"><img src="@/assets/key.svg" alt="key"> Безопасность</NuxtLink></li>
+              <li><NuxtLink to="/subscription"><img src="@/assets/bill.svg" alt="bill"> Подписки</NuxtLink></li>
+            </ul>
+          </div>
+          <div class="profile-actions">
+            <NuxtLink to="/" class="logout">Перейти в чат</NuxtLink>
+            <button class="logout" @click="showLogoutModal = true">Выйти с аккаунта</button>
           </div>
         </div>
         <div class="profile-details">
-          <h2>Профиль</h2>
+          <h2>Профиль
+            <button class="sidebar-open-btn" @click="toggleSidebar"><img src="@/assets/menu.png" alt=""></button>
+          </h2>
         <div class="profile-info">
           <div class="avatar-section">
             <img class="avatar" src="@/assets/bot.jpg" alt="Аватар" />
-            <div>
+            <div class="avatar-section-name">
               <span>{{ name }} {{ surname }}</span>
               <small>Подписка до 13.05.25</small>
             </div>
@@ -93,7 +111,11 @@ const surname = ref('Гойибназаров')
 const email = ref('asad228@gmail.com')
 const phone = ref('+998944210064')
 
+const isSidebarOpen = ref(false)
 
+function toggleSidebar() {
+  isSidebarOpen.value = !isSidebarOpen.value
+}
 
 const showLogoutModal = ref(false)
 
@@ -123,7 +145,14 @@ function deletePhoto() {
 </script>
 
 
-<style scoped>
+<style >
+@import "./sidevar.css";
+.avatar-section-name{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -233,6 +262,9 @@ function deletePhoto() {
   padding: 30px;
   border-bottom: 2px solid #000;
   font-size: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .profile-page-wrapper {
   border: 2px solid black;
@@ -368,6 +400,13 @@ input {
   .profile-page {
     flex-direction: column;
     padding: 20px;
+  }
+  .avatar-section-name{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 10px;
   }
 }
 
