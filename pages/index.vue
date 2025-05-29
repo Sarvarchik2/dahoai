@@ -21,7 +21,7 @@
           <DropdownMenu label="Daho AI" position="right">
             <NuxtLink to="/">Чат</NuxtLink>
             <NuxtLink to="/profilepage">Профиль</NuxtLink>
-            <NuxtLink to="/">Подписки</NuxtLink>
+            <NuxtLink to="/subscription">Подписки</NuxtLink>
             <NuxtLink to="/security">Безопасность</NuxtLink>
             <NuxtLink to="#">Выйти с аккаунта</NuxtLink>
           </DropdownMenu>
@@ -925,7 +925,9 @@ body{
     top: 0;
 
   }
-
+    .input-wrapper{
+      border-radius: 0;
+    }
   .sidebar-wrapper.open {
     width: 100%;
     left: 0;

@@ -16,7 +16,7 @@ const props = defineProps({
   label: String,
   position: {
     type: String,
-    default: 'left' // 'left' или 'right'
+    default: 'left'
   }
 })
 const open = ref(false)
