@@ -6,9 +6,9 @@
             <h2>Аккаунт</h2>
             <p class="subtitle">Настройки</p>
             <ul>
-              <li><button><img src="@/assets/user.svg" alt="user"> Профиль</button></li>
-              <li><button><img src="@/assets/key.svg" alt="key"> Безопасность</button></li>
-              <li><button><img src="@/assets/bill.svg" alt="bill"> Подписки</button></li>
+              <li><NuxtLink to="/profilepage"><img src="@/assets/user.svg" alt="user"> Профиль</NuxtLink></li>
+              <li><NuxtLink to="/security"><img src="@/assets/key.svg" alt="key"> Безопасность</NuxtLink></li>
+              <li><NuxtLink to="/subscription"><img src="@/assets/bill.svg" alt="bill"> Подписки</NuxtLink></li>
             </ul>
           </div>
           <div class="profile-actions">
@@ -251,12 +251,6 @@ function deletePhoto() {
   border-radius: 8px;
 }
 
-.sidebar-wrapper{
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
 .profile-details h2{
   width: 100%;
   padding: 30px;
@@ -274,64 +268,6 @@ function deletePhoto() {
   width: 100%;
   flex-wrap: wrap;
   height:100%;
-}
-
-.sidebar {
-  flex: 1 1 250px;
-  padding: 24px;
-  min-width: 280px;
-  display: flex;
-  border-right: 2px solid #000;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.sidebar h2 {
-  margin-bottom: 4px;
-}
-
-.sidebar .subtitle {
-  color: #999;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-
-.sidebar ul {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-  list-style: none;
-}
-
-.sidebar ul button {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid black;
-  border-radius: 8px;
-  background: white;
-  font-size: 16px;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  gap: 10px;
-}
-
-.sidebar .actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sidebar .actions .logout {
-  border: 2px solid black;
-  border-radius: 8px;
-  background: white;
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
 }
 
 .profile-details {
@@ -411,7 +347,7 @@ input {
 }
 
 @media (max-width: 480px) {
-  .sidebar,
+
   .profile-details {
     min-width: 100%;
     padding: 16px;
@@ -427,5 +363,3 @@ input {
   }
 }
 </style>
-<script setup lang="ts">
-</script>

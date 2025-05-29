@@ -145,11 +145,18 @@
     background: black;
     color: white;
 }
-
+.logout{
+    color: #000;
+}
+.sidebar-open-btn{
+    display: none;
+}
 .profile-sidebar-open-btn {
     display: none;
 }
-
+.profile-sidebar-mobile{
+    display: none;
+}
 @media (max-width: 768px) {
     .profile-sidebar-desctop {
         display: none;

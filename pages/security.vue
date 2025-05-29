@@ -6,9 +6,9 @@
             <h2>Аккаунт</h2>
             <p class="subtitle">Настройки</p>
             <ul>
-              <li><button><img src="@/assets/user.svg" alt="user"> Профиль</button></li>
-              <li><button><img src="@/assets/key.svg" alt="key"> Безопасность</button></li>
-              <li><button><img src="@/assets/bill.svg" alt="bill"> Подписки</button></li>
+              <li><NuxtLink to="/profilepage"><img src="@/assets/user.svg" alt="user"> Профиль</NuxtLink></li>
+              <li><NuxtLink to="/security"><img src="@/assets/key.svg" alt="key"> Безопасность</NuxtLink></li>
+              <li><NuxtLink to="/subscription"><img src="@/assets/bill.svg" alt="bill"> Подписки</NuxtLink></li>
             </ul>
           </div>
           <div class="profile-actions">
@@ -222,13 +222,6 @@ function cancelEdit() {
   justify-content: space-between;
   align-items: center;
 }
-.sidebar-wrapper{
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-
-}
 .profile-page-wrapper {
   display: flex;
   border: 2px solid black;
@@ -241,63 +234,6 @@ function cancelEdit() {
   height:100%;
 }
 
-.sidebar {
-  flex: 1 1 250px;
-  border-right: 2px solid black;
-  padding: 24px;
-  min-width: 280px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.sidebar h2 {
-  margin-bottom: 4px;
-}
-
-.sidebar .subtitle {
-  color: #999;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-
-.sidebar ul {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-  list-style: none;
-}
-
-.sidebar ul button {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid black;
-  border-radius: 8px;
-  background: white;
-  font-size: 16px;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  gap: 10px;
-}
-
-.sidebar .actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sidebar .actions .logout {
-  border: 2px solid black;
-  border-radius: 8px;
-  background: white;
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
-}
 
 .nav-buttons {
   display: flex;

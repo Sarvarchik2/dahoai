@@ -6,9 +6,9 @@
           <h2>Аккаунт</h2>
           <p class="subtitle">Настройки</p>
           <ul>
-            <li><button><img src="@/assets/user.svg" alt="user"> Профиль</button></li>
-            <li><button><img src="@/assets/key.svg" alt="key"> Безопасность</button></li>
-            <li><button><img src="@/assets/bill.svg" alt="bill"> Подписки</button></li>
+            <li><NuxtLink to="/profilepage"><img src="@/assets/user.svg" alt="user"> Профиль</NuxtLink></li>
+            <li><NuxtLink to="/security"><img src="@/assets/key.svg" alt="key"> Безопасность</NuxtLink></li>
+            <li><NuxtLink to="/subscription"><img src="@/assets/bill.svg" alt="bill"> Подписки</NuxtLink></li>
           </ul>
         </div>
         <div class="profile-actions">
