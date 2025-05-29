@@ -23,9 +23,9 @@
           <button class="profile-close-btn" @click="toggleSidebar"><img src="@/assets/clode.png" alt="close"/></button>
           <p class="subtitle">Настройки</p>
           <ul>
-            <li><button><img src="@/assets/user.svg" alt="user"> Профиль</button></li>
-            <li><button><img src="@/assets/key.svg" alt="key"> Безопасность</button></li>
-            <li><button><img src="@/assets/bill.svg" alt="bill"> Подписки</button></li>
+            <li><NuxtLink to="/profilepage"><img src="@/assets/user.svg" alt="user"> Профиль</NuxtLink></li>
+            <li><NuxtLink to="/security"><img src="@/assets/key.svg" alt="key"> Безопасность</NuxtLink></li>
+            <li><NuxtLink to="/subscription"><img src="@/assets/bill.svg" alt="bill"> Подписки</NuxtLink></li>
           </ul>
         </div>
         <div class="profile-actions">
@@ -454,7 +454,10 @@ function toggleSidebar() {
   .sub-wrapper{
     height: 60%;
   }
-
+  .sub-wrapper-item h3, .sub-wrapper-item p, .sub-wrapper-item a ,.sub-wrapper-item2 a, .sub-wrapper-item2 h3, .sub-wrapper-item2 p,.sub-wrapper-item2 h2{
+    font-size: 18px;
+    text-align: center;
+  }
 }
 
 @media (max-width: 480px) {
