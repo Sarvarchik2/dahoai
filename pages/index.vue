@@ -864,6 +864,7 @@ body{
   padding: 12px 16px;
   border: none;
   font-size: 14px;
+  background: none;
   outline: none;
 }
 
